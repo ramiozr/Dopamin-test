@@ -6,7 +6,7 @@ const DopamineSurvey = () => {
   const [answers, setAnswers] = useState({});
   const [showResults, setShowResults] = useState(false);
 
-  const questions = [
+  const questions = useMemo(() => [
     // Блок А: Мотивация и Психология
     { id: 1, text: "Насколько легко вам заставить себя начать новое или запланированное дело?", coefficient: 1.5, block: "A", blockName: "Мотивация", type: "positive" },
     { id: 2, text: "Как часто вы чувствуете искренний интерес и креативный подъем в работе или учебе?", coefficient: 1.0, block: "A", blockName: "Мотивация", type: "positive" },
@@ -33,12 +33,11 @@ const DopamineSurvey = () => {
     { id: 17, text: "Склонны ли вы к играм на деньги (ставки, казино) или поиску риска ради «встряски»?", coefficient: 2.0, block: "G", blockName: "Бытовая стимуляция", type: "negative" },
     { id: 18, text: "Чувствуете ли вы необходимость постоянно слушать музыку или подкасты «фоном», когда вы одни?", coefficient: 1.0, block: "G", blockName: "Бытовая стимуляция", type: "negative" },
     { id: 19, text: "Используете ли вы вейпы или никотин (снюс, сигареты)?", coefficient: 2.0, block: "G", blockName: "Бытовая стимуляция", type: "negative" },
-  ];
+  ], []);
 
   const getAnswerOptions = (questionId) => {
     const q = questions[questionId - 1];
     
-    // Échelles personnalisées
     if (questionId === 1) {
       return [
         { value: 5, label: "Очень легко" },
@@ -115,8 +114,7 @@ const DopamineSurvey = () => {
       if (answer !== undefined) {
         let rawScore;
         if (q.invertTimeScale) {
-          // Pour Q11: inverser la logique (moins de temps = mieux)
-          rawScore = answer; // Garder la valeur comme est (1=mauvais, 5=bon pour cette question)
+          rawScore = answer; 
         } else if (q.type === "negative") {
           rawScore = 6 - answer;
         } else {
@@ -138,7 +136,6 @@ const DopamineSurvey = () => {
       }
     });
 
-    // Convertir en pourcentage (0-100)
     const radarData = Object.entries(blocks).map(([key, block]) => ({
       name: block.name.split(" ")[0],
       fullName: block.name,
@@ -148,7 +145,7 @@ const DopamineSurvey = () => {
     }));
 
     return { blocks, radarData, details };
-  }, [answers]);
+  }, [answers, questions]); // Ajout de questions ici pour ESLint
 
   const handleAnswer = (value) => {
     const newAnswers = { ...answers, [questions[currentQuestion].id]: value };
@@ -185,7 +182,6 @@ const DopamineSurvey = () => {
                   stroke="#10b981"
                   fill="#10b981"
                   fillOpacity={0.6}
-                  isAnimationActive
                 />
               </RadarChart>
             </ResponsiveContainer>
@@ -306,9 +302,7 @@ const DopamineSurvey = () => {
 
 const QuestionDetail = ({ question, details }) => {
   if (!details) return null;
-  
   const percentage = (details.weightedScore / details.maxWeightedScore) * 100;
-
   return (
     <div className="bg-slate-600 rounded-lg p-4">
       <div className="flex justify-between items-start mb-2">
